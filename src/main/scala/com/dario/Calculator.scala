@@ -47,33 +47,33 @@ class Calculator {
   }
 
   private def toElements(expression : String) : Try[Array[Element]] = {
-    val expressionAsArray  = new mutable.MutableList[Element]()
+    val elements  = new mutable.MutableList[Element]()
     val numberBuffer = new StringBuffer()
     val iterator = expression.iterator
-    var foundError : Option[Failure[Array[Element]]] = None
-    while (iterator.hasNext && foundError.isEmpty) {
+    var failure : Option[Failure[Array[Element]]] = None
+    while (iterator.hasNext && failure.isEmpty) {
       val next = iterator.next()
       if(next.isDigit || next == '.') {
         numberBuffer.append(next)
       } else {
         if(numberBuffer.length() > 0) {
-          expressionAsArray += Number(numberBuffer.toString.toFloat)
+          elements += Number(numberBuffer.toString.toFloat)
           numberBuffer.setLength(0)
         } else {
-          foundError = Some(Failure(new Throwable("Invalid expression since there's no number before operator")))
+          failure = Some(Failure(new Throwable("Invalid expression since there's no number before operator")))
         }
-        Operator.operatorFromChar(next) map {expressionAsArray += _} recover {
+        Operator.operatorFromChar(next) map {elements += _} recover {
           case op : Throwable =>
-            foundError = Some(Failure(op))
+            failure = Some(Failure(op))
         }
       }
     }
 
-    foundError getOrElse {
+    failure getOrElse {
       if(numberBuffer.length > 0) {
-        expressionAsArray += Number(numberBuffer.toString.toFloat)
+        elements += Number(numberBuffer.toString.toFloat)
       }
-      Success(expressionAsArray.toArray)
+      Success(elements.toArray)
     }
   }
 
@@ -99,4 +99,5 @@ class Calculator {
         Failure(new Throwable("invalid expression since it does not start with a number"))
     }
   }
+
 }
